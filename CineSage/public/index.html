@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CineSage</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #08080E;
+      --surface:   #11101C;
+      --surface2:  #19172A;
+      --border:    #2A2640;
+      --border-h:  #443F64;
+      --txt:       #EAE6F4;
+      --txt-muted: #7A748E;
+      --txt-dim:   #3D3A52;
+      --accent:    #9B6DFF;
+      --accent-dk: #6B3FE7;
+      --radius:    12px;
+      --radius-sm: 8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--txt);
+      font-family: 'Inter', sans-serif;
+      font-weight: 400;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Glow blobs */
+    .blob {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(130px);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob-1 {
+      width: 640px; height: 640px;
+      top: -220px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(107, 63, 231, 0.13);
+    }
+    .blob-2 {
+      width: 380px; height: 380px;
+      bottom: 8%; right: -80px;
+      background: rgba(155, 109, 255, 0.07);
+    }
+
+    /* Layout */
+    .page {
+      position: relative;
+      z-index: 1;
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 0 1.5rem 5rem;
+    }
+
+    /* Hero */
+    header {
+      text-align: center;
+      padding: 5rem 0 3.5rem;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+    }
+    .eyebrow::before, .eyebrow::after {
+      content: '';
+      display: block;
+      width: 22px; height: 1px;
+      background: var(--accent);
+      opacity: 0.45;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.8rem, 9vw, 6.8rem);
+      font-weight: 900;
+      line-height: 0.95;
+      letter-spacing: -0.03em;
+      color: var(--txt);
+      margin-bottom: 1.1rem;
+    }
+    h1 em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .tagline {
+      font-size: 1rem;
+      font-weight: 300;
+      color: var(--txt-muted);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 2.5rem 0;
+    }
+    .divider-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+    }
+    .divider-pip {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.55;
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Label */
+    .field-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    /* Textarea */
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--txt);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 300;
+      padding: 0.85rem 1rem;
+      outline: none;
+      resize: vertical;
+      min-height: 190px;
+      line-height: 1.75;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(155, 109, 255, 0.13);
+    }
+    textarea::placeholder { color: var(--txt-dim); }
+
+    /* Hint */
+    .hint {
+      font-size: 0.72rem;
+      color: var(--txt-dim);
+      margin-top: 0.55rem;
+    }
+
+    /* Button */
+    .cta {
+      width: 100%;
+      padding: 0.95rem;
+      background: var(--accent-dk);
+      border: none;
+      border-radius: var(--radius-sm);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.84rem;
+      font-weight: 600;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .cta:hover:not(:disabled) { background: var(--accent); transform: translateY(-1px); }
+    .cta:active:not(:disabled) { transform: translateY(0); }
+    .cta:disabled { opacity: 0.42; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.28);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error */
+    #error-msg {
+      display: none;
+      background: rgba(255, 90, 100, 0.08);
+      border: 1px solid rgba(255, 90, 100, 0.22);
+      border-radius: var(--radius-sm);
+      color: #FF7080;
+      font-size: 0.84rem;
+      padding: 0.8rem 1rem;
+      margin-top: 0.75rem;
+    }
+    #error-msg.visible { display: block; }
+
+    /* Result */
+    #result-wrapper { display: none; }
+    #result-wrapper.visible {
+      display: block;
+      animation: fadeUp 0.4s ease both;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .result-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.75rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .result-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--txt);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .result-title svg { color: var(--accent); width: 18px; height: 18px; flex-shrink: 0; }
+
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--txt-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.74rem;
+      font-weight: 500;
+      padding: 0.32rem 0.75rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .copy-btn svg { width: 13px; height: 13px; }
+
+    #result-body {
+      padding: 1.75rem 2rem;
+      font-size: 0.91rem;
+      font-weight: 300;
+      line-height: 1.9;
+      color: #C2BDCF;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    #result-body strong { color: var(--txt); font-weight: 500; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding-top: 3.5rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.09em;
+      color: var(--txt-dim);
+    }
+    footer span { color: var(--accent); opacity: 0.65; }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="page">
+
+    <header>
+      <div class="eyebrow">AI Movie Intelligence</div>
+      <h1>Cine<em>Sage</em></h1>
+      <p class="tagline">Paste any movie summary and get a complete cinematic breakdown instantly.</p>
+    </header>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <div class="divider-pip"></div>
+      <div class="divider-line"></div>
+    </div>
+
+    <!-- Input -->
+    <div class="card">
+      <div class="field-label">Movie Summary</div>
+      <textarea
+        id="summary"
+        placeholder="Paste a movie description, Wikipedia plot, or any overview here…"
+        spellcheck="false"
+      ></textarea>
+      <p class="hint">Tip: Press Ctrl + Enter to analyse instantly.</p>
+    </div>
+
+    <button class="cta" id="analyze-btn">
+      <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+        <polygon points="23 7 16 12 23 17 23 7"/>
+        <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+      </svg>
+      Analyse Movie
+    </button>
+
+    <div id="error-msg"></div>
+
+    <!-- Result -->
+    <div id="result-wrapper">
+      <div class="divider" style="margin:2rem 0">
+        <div class="divider-line"></div>
+        <div class="divider-pip"></div>
+        <div class="divider-line"></div>
+      </div>
+
+      <div class="result-card">
+        <div class="result-topbar">
+          <div class="result-title">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="2" ry="2"/>
+              <line x1="7" y1="2" x2="7" y2="22"/>
+              <line x1="17" y1="2" x2="17" y2="22"/>
+              <line x1="2" y1="12" x2="22" y2="12"/>
+              <line x1="2" y1="7" x2="7" y2="7"/>
+              <line x1="2" y1="17" x2="7" y2="17"/>
+              <line x1="17" y1="17" x2="22" y2="17"/>
+              <line x1="17" y1="7" x2="22" y2="7"/>
+            </svg>
+            Extracted Intelligence
+          </div>
+          <button class="copy-btn" id="copy-btn" aria-label="Copy result">
+            <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy
+          </button>
+        </div>
+        <div id="result-body"></div>
+      </div>
+    </div>
+
+    <footer>
+      CINESAGE &nbsp;·&nbsp; Powered by <span>Mistral AI</span>
+    </footer>
+
+  </div>
+
+  <script>
+    const summaryInput  = document.getElementById('summary');
+    const analyzeBtn    = document.getElementById('analyze-btn');
+    const resultWrapper = document.getElementById('result-wrapper');
+    const resultBody    = document.getElementById('result-body');
+    const errorMsg      = document.getElementById('error-msg');
+    const copyBtn       = document.getElementById('copy-btn');
+
+    function showError(msg) {
+      errorMsg.textContent = msg;
+      errorMsg.classList.add('visible');
+    }
+    function clearError() {
+      errorMsg.textContent = '';
+      errorMsg.classList.remove('visible');
+    }
+
+    function setLoading(on) {
+      analyzeBtn.disabled = on;
+      analyzeBtn.innerHTML = on
+        ? `<div class="spinner"></div> Analysing…`
+        : `<svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+             <polygon points="23 7 16 12 23 17 23 7"/>
+             <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+           </svg>
+           Analyse Movie`;
+    }
+
+    function formatResult(text) {
+      return text.replace(/^(\d+\.\s+[^\n]+)/gm, (m) => `<strong>${m}</strong>`);
+    }
+
+    analyzeBtn.addEventListener('click', async () => {
+      clearError();
+      resultWrapper.classList.remove('visible');
+
+      const summary = summaryInput.value.trim();
+      if (!summary) { showError('Please paste a movie summary before analysing.'); return; }
+
+      setLoading(true);
+      try {
+        const res = await fetch('/analyse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ movie_summary: summary }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `Server error ${res.status}`);
+
+        resultBody.innerHTML = formatResult(data.result);
+        resultWrapper.classList.add('visible');
+        resultWrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } catch (err) {
+        showError(err.message || 'Something went wrong. Is the server running?');
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    summaryInput.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') analyzeBtn.click();
+    });
+
+    copyBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(resultBody.innerText).then(() => {
+        copyBtn.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+        setTimeout(() => {
+          copyBtn.innerHTML = `<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>
